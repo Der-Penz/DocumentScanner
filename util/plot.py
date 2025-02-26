@@ -39,7 +39,7 @@ def plot_images(imgs: List[Union[np.ndarray, Tuple[np.ndarray, str, Any]]], titl
     if title:
         fig.suptitle(title)
 
-    plt.show()
+    # plt.show()
     return fig, axes
 
 # Call the function inside a Jupyter Notebook
