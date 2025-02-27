@@ -1,4 +1,5 @@
 from typing import List, Tuple, Optional
+import numpy as np
 
 def line_intersections(lines : List[Tuple[int, int, int]]) -> List[Tuple[Tuple[int, int], Tuple[int, int, int], Tuple[int, int, int]]]:
     """
@@ -59,11 +60,21 @@ def line_intersection(line_a : Tuple[int, int, int], line_b: Tuple[int, int, int
 def rescale_point(point : Tuple[int, int], cur_shape : Tuple[int, int], original_shape : Tuple[int, int]) -> Tuple[int, int]:
     """
     Undo scaling for a given point in a img shape into the original img shape
+
     :param point: Points coords in cur_shape as y, x
     :param cur_shape: Size of the image as height, width
     :param original_shape: Size of the original image as height, width
-    :return points coords in the original shape as y, x
+    :return: points coords in the original shape as y, x
     """
     return (point[0] * original_shape[0] / cur_shape[0], point[1] * original_shape[1] / cur_shape[1])
 
 
+def euclidean_distance(point_a : Tuple[int, ...], point_b : Tuple[int, ...]) -> float:
+    """
+    calculates the euclidean distance between two points using pythagorean theorem
+
+    :param point_a: the first point
+    :param point_b: the second point
+    :return distance
+    """
+    return np.sqrt(np.sum(np.square(np.array(point_a) - np.array(point_b))))
