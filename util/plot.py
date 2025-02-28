@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_images(imgs: List[Union[np.ndarray, Tuple[np.ndarray, str, Any]]], title='', **fig_kw: Any):
+def plot_images(imgs: List[Union[np.ndarray, Tuple[np.ndarray, str, Any]]], title='', limit_axis=False, **fig_kw: Any):
     ''' 
     Plot images in a single row.
 
@@ -35,6 +35,10 @@ def plot_images(imgs: List[Union[np.ndarray, Tuple[np.ndarray, str, Any]]], titl
 
         else:
             axes[i].imshow(img)
+
+        if limit_axis:
+            axes[i].set_xlim(0, img.shape[1])
+            axes[i].set_ylim(img.shape[0], 0)
 
     if title:
         fig.suptitle(title)
