@@ -63,7 +63,7 @@ def line_intersection(line_a : Tuple[float, float, float], line_b: Tuple[float, 
         angle = np.degrees(angle)
 
 
-    return (x_inter, y_inter, angle)
+    return (x_inter, y_inter), angle
 
 def rescale_point(point : Tuple[int, int], cur_shape : Tuple[int, int], original_shape : Tuple[int, int]) -> Tuple[int, int]:
     """
