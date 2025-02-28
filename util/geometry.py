@@ -6,7 +6,7 @@ def line_intersections(lines : List[Tuple[int, int, int]]) -> List[Tuple[Tuple[i
     calculates all intersection points from the given set of lines
 
     :param lines: A list of lines in the format: x, y, slope where x and y is a point on the line
-    :return: a list of intersections points x y and the 2 lines which cross at that point
+    :return: a list of intersections points x y, the intersection angle in degrees and the 2 lines which cross at that point
     """
 
     intersections = []
@@ -17,7 +17,8 @@ def line_intersections(lines : List[Tuple[int, int, int]]) -> List[Tuple[Tuple[i
 
             intersection = line_intersection(line_a, line_b)
             if intersection:
-                intersections.append((intersection,line_a, line_b))
+                point, angle = intersection
+                intersections.append((point, angle, line_a, line_b))
 
     return intersections
 
@@ -34,13 +35,13 @@ def fuzzy_compare(a: float, b: float, epsilon = .001):
     return abs(a-b) < epsilon
             
 
-def line_intersection(line_a : Tuple[int, int, int], line_b: Tuple[int, int, int]) -> Optional[Tuple[int, int]]:
+def line_intersection(line_a : Tuple[float, float, float], line_b: Tuple[float, float, float]) -> Optional[Tuple[Tuple[float, float], float]]:
     """
     calculates the interception point of the two line.
 
     :param line_a: The first line in the format: x, y, slope where x and y is a point on the line
-    :param line_b: The first line in the format: x, y, slope where x and y is a point on the line
-    :return: The intersection point x y coords or None if lines are parallel or the same
+    :param line_b: The second line in the format: x, y, slope where x and y is a point on the line
+    :return: The intersection point x y coords as a Tuple and the intersection angle in degrees or None if lines are parallel or the same
     """
     x_a, y_a, m_a = line_a
     x_b, y_b, m_b = line_b
@@ -55,7 +56,14 @@ def line_intersection(line_a : Tuple[int, int, int], line_b: Tuple[int, int, int
     x_inter = (b_a - b_b) / (m_b - m_a)
     y_inter = m_a * x_inter + b_a
 
-    return (x_inter, y_inter)
+    if fuzzy_compare(m_a * m_b, -1):
+        angle = 90
+    else:
+        angle =  np.atan((m_a - m_b) / (1 + m_a * m_b))
+        angle = np.degrees(angle)
+
+
+    return (x_inter, y_inter, angle)
 
 def rescale_point(point : Tuple[int, int], cur_shape : Tuple[int, int], original_shape : Tuple[int, int]) -> Tuple[int, int]:
     """
