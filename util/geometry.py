@@ -1,24 +1,24 @@
 from typing import List, Tuple, Optional
 import numpy as np
 
-def line_intersections(lines : List[Tuple[float, float, float]]) -> List[Tuple[Tuple[float, float], Tuple[float, float, float], Tuple[float, float, float]]]:
+def line_intersections(lines : List[Tuple[float, float, float]]) -> List[Tuple[Tuple[float, float], float, int, int]]:
     """
     calculates all intersection points from the given set of lines
 
     :param lines: A list of lines in the format: x, y, slope where x and y is a point on the line
-    :return: a list of intersections points x y, the intersection angle in degrees and the 2 lines which cross at that point
+    :return: a list of intersections points x y, the intersection angle in degrees and the indices of the 2 lines which cross at that point
     """
 
     intersections = []
     for i, line_a in enumerate(lines):
-        for line_b in lines[i+1:]:
+        for j, line_b in enumerate(lines[i+1:]):
             if fuzzy_compare(line_a[2], line_b[2]):
                 continue
 
             intersection = line_intersection(line_a, line_b)
             if intersection:
                 point, angle = intersection
-                intersections.append((point, angle, line_a, line_b))
+                intersections.append((point, angle, i, j))
 
     return intersections
 
