@@ -18,7 +18,7 @@ def line_intersections(lines : List[Tuple[float, float, float]]) -> List[Tuple[T
             intersection = line_intersection(line_a, line_b)
             if intersection:
                 point, angle = intersection
-                intersections.append((point, angle, i, j))
+                intersections.append((point, angle, i, i + j + 1))
 
     return intersections
 
@@ -49,12 +49,19 @@ def line_intersection(line_a : Tuple[float, float, float], line_b: Tuple[float, 
     if m_a == m_b:
         return None
 
-
     b_a = y_a -  m_a * x_a
     b_b = y_b -  m_b * x_b
 
     x_inter = (b_a - b_b) / (m_b - m_a)
     y_inter = m_a * x_inter + b_a
+
+    # Verify y using line B
+    y_inter_b = m_b * x_inter + b_b
+
+    if not fuzzy_compare(y_inter, y_inter_b):
+        print(f"Warning: Inconsistent y values: {y_inter} (line A) vs {y_inter_b} (line B) using the more stable result")
+        idx = np.argmin([abs(m_a) + abs(b_a), abs(m_b) + abs(b_b)])
+        y_inter = [y_inter, y_inter_b][idx]
 
     if fuzzy_compare(m_a * m_b, -1):
         angle = 90
