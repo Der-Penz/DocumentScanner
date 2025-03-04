@@ -85,6 +85,6 @@ Later on there we be a python file which can be run directly from the terminal
 
 The following resources might be interesting if you want to dive deeper into the steps involved in the document scanning process
 
-[Hough Transform](https://en.wikipedia.org/wiki/Hough_transform)
-[Edge Detection](https://en.wikipedia.org/wiki/Edge_detection)
-[Document detection](https://oezeb.github.io/hough-transform/)
+[Hough Transform](https://en.wikipedia.org/wiki/Hough_transform)  
+[Edge Detection](https://en.wikipedia.org/wiki/Edge_detection)  
+[Document detection](https://oezeb.github.io/hough-transform/)  
