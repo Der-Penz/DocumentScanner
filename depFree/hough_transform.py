@@ -16,13 +16,13 @@ def line_hough_transform(edge_map : np.ndarray, angles : Union[np.ndarray[np.dou
     if angles is None:
         angles = np.linspace(-np.pi / 2, np.pi / 2, 180, endpoint=False)
 
-    size = int(np.ceil((height ** 2 + width ** 2) ** .5))
-    distances = np.linspace(-size, size, size*2, endpoint=False)
+    diagonal_length = int(np.ceil((height ** 2 + width ** 2) ** .5))
+    distances = np.linspace(-diagonal_length, diagonal_length, diagonal_length*2,)
 
     sin_cache = np.sin(angles)
     cos_cache = np.cos(angles)
 
-    accumulator = np.zeros(shape=(len(distances) * 2, len(angles)))
+    accumulator = np.zeros(shape=(len(distances), len(angles)))
 
     for y in range(height):
         for x in range(width):
@@ -32,11 +32,11 @@ def line_hough_transform(edge_map : np.ndarray, angles : Union[np.ndarray[np.dou
                 continue
 
             for i, (sin, cos) in enumerate(zip(sin_cache, cos_cache)):
-                rho = (- sin * x) - (y * cos)
-                rho = -rho
-                j = int(np.floor(rho + len(distances) / 2))
+                rho =  sin * y + cos * x 
+                rho = np.round(rho) + diagonal_length
+                rho = rho.astype(np.int16)
 
-                accumulator[j][i] += 1
+                accumulator[rho][i] += 1
 
     
     return accumulator, angles, distances
