@@ -42,19 +42,19 @@ def line_hough_transform(edge_map : np.ndarray, angles : Union[np.ndarray[np.dou
     return accumulator, angles, distances
 
 
-def hough_lines_peaks(hough_space: np.ndarray, angles : np.ndarray[np.double], dists : np.ndarray[np.double], max_peaks : int = np.inf, threshold = .5, min_distance = 5, min_angle = 1):
+def hough_lines_peaks(hough_space: np.ndarray, angles : np.ndarray[np.double], dists : np.ndarray[np.double], num_peaks : int = np.inf, threshold = .5, min_distance = 5, min_angle = 1):
     '''
     Find the n peaks in a given hough space by using non maxima suppression to filter out similar lines.
 
     :param hough_space: the accumulator given from line_hough_transform in shape (rho size, theta size)
     :param angles: The angles used in the hough transform
     :param dists: The distances used in the hough transform
-    :param max_peaks: number of max lines that should get return which are greater than threshold
+    :param num_peaks: number of max lines that should get return which are greater than threshold
     :param threshold: the minium value a a line needs in the accumulator to be counted as a line
     :param min_distance: the minimum distance a line must be from another to not get suppressed by nms
     :param min_angle: the minimum angle a line must differ from another to not get suppressed by nms
     '''
-    line_idx = _non_maxima_suppression(hough_space, angles, dists, max_peaks, threshold, min_distance, min_angle)
+    line_idx = _non_maxima_suppression(hough_space, angles, dists, num_peaks, threshold, min_distance, min_angle)
 
     angles_list, dists_list = zip(*[(angles[j], dists[i]) for i, j in line_idx])
     return hough_space, list(angles_list), list(dists_list)

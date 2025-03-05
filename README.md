@@ -81,6 +81,9 @@ For now you can run the python notebook and look at each individual processing s
 
 Later on there we be a python file which can be run directly from the terminal
 
+The `depFree` directory contains implementations of various algorithms used for document detection and is solely intended for learning purposes. 
+Although it should be possible to switch the `skimage` and other library implementations with the `depFree` implementation without having any compatibility issues.
+
 ## Resources
 
 The following resources might be interesting if you want to dive deeper into the steps involved in the document scanning process
