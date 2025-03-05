@@ -1,5 +1,5 @@
 import numpy as np
-from geometry import line_intersections, rescale_point
+from util.geometry import line_intersections, rescale_point
 from skimage.transform import hough_line_peaks
 
 def find_corners(img : np.ndarray, h : np.ndarray, angles : np.array, dists : np.array, max_peaks : int, threshold : float, epsilon: float, max_angle_deviation: float):

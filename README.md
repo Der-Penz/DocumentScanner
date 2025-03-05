@@ -79,7 +79,8 @@ At the end a CNN would most likely outperform this method but for a cost of more
 For now you can run the python notebook and look at each individual processing step.
 > Note: The notebook will not run complexly if the document could be be found
 
-Later on there we be a python file which can be run directly from the terminal
+Or use the cli with `python main.py <<your_image_path>>`.  
+Use `python main.py --help` for more information.
 
 The `depFree` directory contains implementations of various algorithms used for document detection and is solely intended for learning purposes. 
 Although it should be possible to switch the `skimage` and other library implementations with the `depFree` implementation without having any compatibility issues.
