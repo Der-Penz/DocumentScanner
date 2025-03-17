@@ -71,13 +71,13 @@ As this example shows edges from other objects can be falsy interpreted as the d
 
 ![image](images/documentation/example_false_edge_detection.png)
 
-Getting more reliant in these situation requiems additional computation and improved line and corner detection. 
+Getting more reliant in these situation requires additional computation and improved line and corner detection. 
 At the end a CNN would most likely outperform this method but for a cost of more computation and explainability.
 
 ## How to use
 
 For now you can run the python notebook and look at each individual processing step.
-> Note: The notebook will not run complexly if the document could be be found
+> Note: The notebook will not run completly if the document could be be found
 
 Or use the cli with `python main.py <<your_image_path>>`.  
 Use `python main.py --help` for more information.
