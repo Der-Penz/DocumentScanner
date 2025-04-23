@@ -12,7 +12,7 @@ from dep.corner_detection import find_corners
 from skimage.transform import ProjectiveTransform, warp
 
 def detect_document(img_path, preferred_min_size = 256, sigma = 1.2,
-                    num_angles = 360, max_angle_deviation = 20, epsilon = .1, threshold = .2, max_retries = 20, out = None):
+                    num_angles = 360, max_angle_deviation = 20, epsilon = .1, threshold = .2, max_retries = 20, out = None) -> str:
     img = imread(img_path)
 
     preprocessed_img = _preprocess_image(img, preferred_min_size, sigma, footprint=[(np.ones((27, 1)), 1), (np.ones((1, 27)), 1)])
@@ -34,6 +34,7 @@ def detect_document(img_path, preferred_min_size = 256, sigma = 1.2,
         out = f"{out}/{path.basename(img_path).split(".")[0]}_scanned_document.png"
 
     imsave(out, warped)
+    return out
 
 def _preprocess_image(img, preferred_min_size, sigma, footprint):
     min_side = np.min(img.shape[:2])
@@ -50,12 +51,12 @@ def _edge_detection(img):
 
 def _corner_detection(img, original_shape, num_angles, max_angle_deviation, epsilon, threshold, max_retries) :
     tested_angles = np.linspace(-np.pi / 2, np.pi / 2, num_angles, endpoint=False)
-    h, angles, dists = hough_line(img, theta=tested_angles) 
+    h, h_angles, dists = hough_line(img, theta=tested_angles) 
 
     max_peaks = max_retries
     peaks = 4
     while True:
-        corners, angles, _ = find_corners(img, h, angles, dists, max_peaks=peaks, threshold=threshold*max([max(a) for a in h]), epsilon=epsilon, max_angle_deviation=max_angle_deviation) 
+        corners, angles, _ = find_corners(img, h, h_angles, dists, max_peaks=peaks, threshold=threshold*max([max(a) for a in h]), epsilon=epsilon, max_angle_deviation=max_angle_deviation) 
         corners = [rescale_point(corner, img.shape, original_shape[:-1]) for corner in corners]
         if len(corners) >= 4:
             break
