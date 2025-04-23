@@ -1,5 +1,4 @@
 from os import path
-from util.geometry import rescale_point, euclidean_distance
 from skimage.io import imread, imsave
 from skimage.transform import rescale
 from skimage.morphology import closing
@@ -7,9 +6,10 @@ from skimage.feature import canny
 from skimage.filters import gaussian
 from skimage.color import rgb2gray
 from skimage.transform import hough_line
-import numpy as np
-from dep.corner_detection import find_corners
 from skimage.transform import ProjectiveTransform, warp
+import numpy as np
+from util.geometry import rescale_point, euclidean_distance
+from corner_detection import find_corners
 
 def detect_document(img_path, preferred_min_size = 256, sigma = 1.2,
                     num_angles = 360, max_angle_deviation = 20, epsilon = .1, threshold = .2, max_retries = 20, out = None) -> str:

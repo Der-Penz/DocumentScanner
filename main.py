@@ -1,5 +1,5 @@
 import argparse
-from dep.DocumentScanner import detect_document
+from detection import detect_document
 
 def main():
     parser = argparse.ArgumentParser(description="Detect a document in an image.")
