@@ -1,6 +1,7 @@
 import argparse
 from detection import detect_document
 from skimage.io import imread, imsave
+from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description="Detect a document in an image.")
@@ -31,8 +32,10 @@ def main():
     )
 
     if args.out:
-        imsave(args.out, warped_img)
-        print(f"Document detected and saved to {args.out}")
+        path = Path(args.out) / f"detected_{Path(args.img_path).name}"
+        path = path.with_suffix('.png')
+        imsave(path, warped_img)
+        print(f"Document detected and saved to {path}")
 
 if __name__ == "__main__":
     main()
