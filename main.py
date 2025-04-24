@@ -1,5 +1,6 @@
 import argparse
 from detection import detect_document
+from skimage.io import imread, imsave
 
 def main():
     parser = argparse.ArgumentParser(description="Detect a document in an image.")
@@ -16,8 +17,10 @@ def main():
     
     args = parser.parse_args()
 
-    detect_document(
-        img_path=args.img_path,
+    img = imread(args.img_path)
+
+    warped_img = detect_document(
+        img=img,
         preferred_min_size=args.preferred_min_size,
         sigma=args.sigma,
         num_angles=args.num_angles,
@@ -25,8 +28,11 @@ def main():
         epsilon=args.epsilon,
         threshold=args.threshold,
         max_retries=args.max_retries,
-        out=args.out
     )
+
+    if args.out:
+        imsave(args.out, warped_img)
+        print(f"Document detected and saved to {args.out}")
 
 if __name__ == "__main__":
     main()

@@ -11,14 +11,47 @@ import numpy as np
 from util.geometry import rescale_point, euclidean_distance
 from corner_detection import find_corners
 
-def detect_document(img_path, preferred_min_size = 256, sigma = 1.2,
-                    num_angles = 360, max_angle_deviation = 20, epsilon = .1, threshold = .2, max_retries = 20, out = None) -> str:
-    img = imread(img_path)
 
-    preprocessed_img = _preprocess_image(img, preferred_min_size, sigma, footprint=[(np.ones((27, 1)), 1), (np.ones((1, 27)), 1)])
+def detect_document(
+    img,
+    preferred_min_size=256,
+    sigma=1.2,
+    num_angles=360,
+    max_angle_deviation=20,
+    epsilon=0.1,
+    threshold=0.2,
+    max_retries=20,
+) -> str:
+    """
+    Detects a document in an image and saves the scanned version.
+
+    :param img: Input image (numpy array).
+    :param preferred_min_size: Minimum preferred document size (default: 256).
+    :param sigma: Sigma for Gaussian smoothing (default: 1.2).
+    :param num_angles: Number of angles for edge detection (default: 360).
+    :param max_angle_deviation: Maximum deviation for valid angles (default: 20).
+    :param epsilon: Margin percentage for near-edge intersections (default: 0.1).
+    :param threshold: Threshold for document detection (default: 0.2).
+    :param max_retries: Maximum retries for corner detection (default: 20).
+    :return: the image
+    """
+    preprocessed_img = _preprocess_image(
+        img,
+        preferred_min_size,
+        sigma,
+        footprint=[(np.ones((27, 1)), 1), (np.ones((1, 27)), 1)],
+    )
     edge_map = _edge_detection(preprocessed_img)
 
-    corners = _corner_detection(edge_map, img.shape, num_angles=num_angles, max_angle_deviation=max_angle_deviation, epsilon=epsilon, threshold=threshold, max_retries=max_retries)
+    corners = _corner_detection(
+        edge_map,
+        img.shape,
+        num_angles=num_angles,
+        max_angle_deviation=max_angle_deviation,
+        epsilon=epsilon,
+        threshold=threshold,
+        max_retries=max_retries,
+    )
 
     if len(corners) < 4:
         raise Exception("Document could not be detected")
@@ -28,13 +61,8 @@ def detect_document(img_path, preferred_min_size = 256, sigma = 1.2,
 
     warped = _warp_image(img, corners, width, height)
 
-    if out is None:
-        out = f"{path.dirname(img_path)}/{path.basename(img_path).split(".")[0]}_scanned_document.png"
-    else:
-        out = f"{out}/{path.basename(img_path).split(".")[0]}_scanned_document.png"
+    return warped
 
-    imsave(out, warped)
-    return out
 
 def _preprocess_image(img, preferred_min_size, sigma, footprint):
     min_side = np.min(img.shape[:2])
@@ -46,22 +74,43 @@ def _preprocess_image(img, preferred_min_size, sigma, footprint):
     preprocess_img = gaussian(preprocess_img, sigma=sigma)
     return preprocess_img
 
+
 def _edge_detection(img):
     return canny(img)
 
-def _corner_detection(img, original_shape, num_angles, max_angle_deviation, epsilon, threshold, max_retries) :
+
+def _corner_detection(
+    img,
+    original_shape,
+    num_angles,
+    max_angle_deviation,
+    epsilon,
+    threshold,
+    max_retries,
+):
     tested_angles = np.linspace(-np.pi / 2, np.pi / 2, num_angles, endpoint=False)
-    h, h_angles, dists = hough_line(img, theta=tested_angles) 
+    h, h_angles, dists = hough_line(img, theta=tested_angles)
 
     max_peaks = max_retries
     peaks = 4
     while True:
-        corners, angles, _ = find_corners(img, h, h_angles, dists, max_peaks=peaks, threshold=threshold*max([max(a) for a in h]), epsilon=epsilon, max_angle_deviation=max_angle_deviation) 
-        corners = [rescale_point(corner, img.shape, original_shape[:-1]) for corner in corners]
+        corners, angles, _ = find_corners(
+            img,
+            h,
+            h_angles,
+            dists,
+            max_peaks=peaks,
+            threshold=threshold * max([max(a) for a in h]),
+            epsilon=epsilon,
+            max_angle_deviation=max_angle_deviation,
+        )
+        corners = [
+            rescale_point(corner, img.shape, original_shape[:-1]) for corner in corners
+        ]
         if len(corners) >= 4:
             break
 
-        if max_peaks ==peaks:
+        if max_peaks == peaks:
             break
         peaks += 1
 
@@ -76,16 +125,33 @@ def _corner_detection(img, original_shape, num_angles, max_angle_deviation, epsi
 
     # sort the corners in counter clockwise order starting form the 3. Quadrant
     # since matplotlib coords start in the topleft corner and the y axis is positive downwards the Quadrants are mirrored horizontally
-    centroid_angles = np.arctan2(corners[:,1] - centroid[1], corners[:,0] - centroid[0])
+    centroid_angles = np.arctan2(
+        corners[:, 1] - centroid[1], corners[:, 0] - centroid[0]
+    )
     corners = np.array(corners)[np.argsort(centroid_angles)]
     angles = np.array(angles)[np.argsort(centroid_angles)]
 
     return corners
 
+
 def _get_image_out_shape(corners):
     # get the average size of the parallel sides of the document
-    horizontal_side_avg = int(np.average([euclidean_distance(corners[0], corners[1]), euclidean_distance(corners[2], corners[3])]))
-    vertical_side_avg = int(np.average([euclidean_distance(corners[0], corners[3]), euclidean_distance(corners[1], corners[2])]))
+    horizontal_side_avg = int(
+        np.average(
+            [
+                euclidean_distance(corners[0], corners[1]),
+                euclidean_distance(corners[2], corners[3]),
+            ]
+        )
+    )
+    vertical_side_avg = int(
+        np.average(
+            [
+                euclidean_distance(corners[0], corners[3]),
+                euclidean_distance(corners[1], corners[2]),
+            ]
+        )
+    )
 
     # define the shortest side as the width and the larger side as the height
     sides = [horizontal_side_avg, vertical_side_avg]
@@ -94,7 +160,8 @@ def _get_image_out_shape(corners):
     height = max(sides)
     return width, height, shortest_idx == 1
 
-# if the vertical side is the smallest the document is orientated in landscape and needs to be rotated 
+
+# if the vertical side is the smallest the document is orientated in landscape and needs to be rotated
 
 
 def _sort_corners(in_landscape_position, corners):
@@ -102,14 +169,16 @@ def _sort_corners(in_landscape_position, corners):
 
     return corners[corner_order]
 
+
 def _warp_image(img, corners, width, height):
     # 0 0 is top left origin
-    src = np.array([[0,0], [0, height], [width, height], [width, 0]])
+    src = np.array([[0, 0], [0, height], [width, height], [width, 0]])
     dst = corners.copy()
 
     projectiveTransform = ProjectiveTransform()
     projectiveTransform.estimate(src, dst)
-    warped = warp(img, projectiveTransform, output_shape=(height, width), mode="constant", cval=1)
+    warped = warp(
+        img, projectiveTransform, output_shape=(height, width), mode="constant", cval=1
+    )
     warped = (warped * 255).astype(np.uint8)
     return warped
-
