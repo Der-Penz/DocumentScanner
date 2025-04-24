@@ -53,9 +53,6 @@ def detect_document(
         max_retries=max_retries,
     )
 
-    if len(corners) < 4:
-        raise Exception("Document could not be detected")
-
     width, height, orientation = _get_image_out_shape(corners)
     corners = _sort_corners(orientation, corners)
 
@@ -114,6 +111,9 @@ def _corner_detection(
             break
         peaks += 1
 
+    if len(corners) < 4:
+        raise Exception("Document could not be detected")
+
     # find the best 4 corners (closest to 90° angles)
     if len(corners) > 4:
         ord = np.argsort(np.abs(90 - np.abs(angles)))
@@ -122,6 +122,7 @@ def _corner_detection(
 
     corners = np.array(corners)
     centroid = np.mean(corners, axis=0)
+
 
     # sort the corners in counter clockwise order starting form the 3. Quadrant
     # since matplotlib coords start in the topleft corner and the y axis is positive downwards the Quadrants are mirrored horizontally
