@@ -82,8 +82,8 @@ For now you can run the python notebook and look at each individual processing s
 Or use the cli with `python main.py <<your_image_path>>`.  
 Use `python main.py --help` for more information.
 
-The `depFree` directory contains implementations of various algorithms used for document detection and is solely intended for learning purposes. 
-Although it should be possible to switch the `skimage` and other library implementations with the `depFree` implementation without having any compatibility issues.
+Additional you can run the `python cam.py <<http-video-stream-url>>` to detect a document from a video stream. Useful if you want to test it with your phones camera.
+Pressing `d` will try to detect a document on the current frame. If a document could be detected press `s` to save it in the tmp dir. Close the connection with `q`.
 
 ## Resources
 
