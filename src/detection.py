@@ -1,5 +1,3 @@
-from os import path
-from skimage.io import imread, imsave
 from skimage.transform import rescale
 from skimage.morphology import closing
 from skimage.feature import canny
@@ -26,7 +24,7 @@ def detect_document(
     Detects a document in an image and saves the scanned version.
 
     :param img: Input image (numpy array).
-    :param preferred_min_size: Minimum preferred document size (default: 256).
+    :param preferred_min_size: Minimum preferred document size for detection (default: 256).
     :param sigma: Sigma for Gaussian smoothing (default: 1.2).
     :param num_angles: Number of angles for edge detection (default: 360).
     :param max_angle_deviation: Maximum deviation for valid angles (default: 20).
