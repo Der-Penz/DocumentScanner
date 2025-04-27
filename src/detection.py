@@ -19,6 +19,7 @@ def detect_document(
     epsilon=0.1,
     threshold=0.2,
     max_retries=20,
+    footprint_size=27,
 ) -> str:
     """
     Detects a document in an image and saves the scanned version.
@@ -31,13 +32,14 @@ def detect_document(
     :param epsilon: Margin percentage for near-edge intersections (default: 0.1).
     :param threshold: Threshold for document detection (default: 0.2).
     :param max_retries: Maximum retries for corner detection (default: 20).
+    :param footprint_size: Size of the footprint for morphological operations (default: 27).
     :return: the image
     """
     preprocessed_img = _preprocess_image(
         img,
         preferred_min_size,
         sigma,
-        footprint=[(np.ones((27, 1)), 1), (np.ones((1, 27)), 1)],
+        footprint_size,
     )
     edge_map = _edge_detection(preprocessed_img)
 
@@ -59,9 +61,10 @@ def detect_document(
     return warped
 
 
-def _preprocess_image(img, preferred_min_size, sigma, footprint):
+def _preprocess_image(img, preferred_min_size, sigma, footprint_size):
     min_side = np.min(img.shape[:2])
     scaling_factor = preferred_min_size / min_side
+    footprint = [(np.ones((footprint_size, 1)), 1), (np.ones((1, footprint_size)), 1)]
 
     preprocess_img = rescale(img, scaling_factor, channel_axis=2)
     preprocess_img = rgb2gray(preprocess_img[:, :, :3])
@@ -102,6 +105,7 @@ def _corner_detection(
         corners = [
             rescale_point(corner, img.shape, original_shape[:-1]) for corner in corners
         ]
+
         if len(corners) >= 4:
             break
 
@@ -109,18 +113,33 @@ def _corner_detection(
             break
         peaks += 1
 
-    if len(corners) < 4:
+    if len(corners) < 3:
         raise Exception("Document could not be detected")
 
-    # find the best 4 corners (closest to 90° angles)
+    corners = np.array(corners)
+    if len(corners) == 3:
+        # if only 3 corners are detected, add the 4th corner
+        centroid = np.mean(corners, axis=0)
+        centroid_angles = np.arctan2(
+            corners[:, 1] - centroid[1], corners[:, 0] - centroid[0]
+        )
+        corners = np.array(corners)[np.argsort(centroid_angles)]
+        angles = np.array(angles)[np.argsort(centroid_angles)]
+
+        ab = corners[0] - corners[1]
+        ac = corners[2] - corners[1]
+        ad = corners[1] + ab + ac
+
+        corners = np.append(corners, [ad], axis=0)
+        angles = np.append(angles, [np.pi / 2], axis=0)
+
+    # if more than four corners are detected, find the best 4 corners (closest to 90° angles)
     if len(corners) > 4:
         ord = np.argsort(np.abs(90 - np.abs(angles)))
         corners = np.array(corners)[ord][:4]
         angles = np.array(angles)[ord][:4]
 
-    corners = np.array(corners)
     centroid = np.mean(corners, axis=0)
-
 
     # sort the corners in counter clockwise order starting form the 3. Quadrant
     # since matplotlib coords start in the topleft corner and the y axis is positive downwards the Quadrants are mirrored horizontally

@@ -71,6 +71,12 @@ def parse_args():
         default=20,
         help="Frequency of corner calculation in frames (default: every 20th frame).",
     )
+    parser.add_argument(
+        "--footprint-size",
+        type=int,
+        default=27,
+        help="Size of the footprint for morphological operations (default: 27).",
+    )
 
     args = parser.parse_args()
     return args
@@ -83,7 +89,7 @@ def find_corners(frame, args):
         frame,
         256,
         1.2,
-        footprint=[(np.ones((27, 1)), 1), (np.ones((1, 27)), 1)],
+        footprint_size=args.footprint_size,
     )
     edge_map = _edge_detection(preprocessed_img)
     try:

@@ -14,6 +14,7 @@ def main():
     parser.add_argument("--epsilon", type=float, default=0.1, help="Margin percentage for near-edge intersections (default: 0.1).")
     parser.add_argument("--threshold", type=float, default=0.2, help="Threshold for document detection (default: 0.2).")
     parser.add_argument("--max_retries", type=int, default=20, help="Maximum retries for corner detection (default: 20).")
+    parser.add_argument("--footprint_size", type=int, default=27, help="Size of the footprint for morphological operations (default: 27).")
     parser.add_argument("--out", type=str, default="./out", help="Path to save the output image (optional).")
     
     args = parser.parse_args()
