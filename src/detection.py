@@ -7,7 +7,7 @@ from skimage.transform import hough_line
 from skimage.transform import ProjectiveTransform, warp
 import numpy as np
 from util.geometry import rescale_point, euclidean_distance
-from corner_detection import find_corners
+from corner_detection import find_intersections
 
 
 def detect_document(
@@ -92,7 +92,7 @@ def _corner_detection(
     max_peaks = max_retries
     peaks = 4
     while True:
-        corners, angles, _ = find_corners(
+        intersections, lines = find_intersections(
             img,
             h,
             h_angles,
