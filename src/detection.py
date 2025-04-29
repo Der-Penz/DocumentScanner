@@ -7,7 +7,7 @@ from skimage.transform import hough_line
 from skimage.transform import ProjectiveTransform, warp
 import numpy as np
 from util.geometry import rescale_point, euclidean_distance
-from corner_detection import find_intersections
+from corner_detection import find_corners_from_hough_space, find_intersections
 
 
 def detect_document(
@@ -53,6 +53,9 @@ def detect_document(
         max_retries=max_retries,
     )
 
+    if corners is None:
+        raise ValueError("No corners found in the image.")
+
     width, height, orientation = _get_image_out_shape(corners)
     corners = _sort_corners(orientation, corners)
 
@@ -86,70 +89,27 @@ def _corner_detection(
     threshold,
     max_retries,
 ):
+    """
+    Detects corners in the image using Hough transform and returns the coordinates of the corners in clockwise order.
+    """
     tested_angles = np.linspace(-np.pi / 2, np.pi / 2, num_angles, endpoint=False)
     h, h_angles, dists = hough_line(img, theta=tested_angles)
 
-    max_peaks = max_retries
-    peaks = 4
-    while True:
-        intersections, lines = find_intersections(
-            img,
-            h,
-            h_angles,
-            dists,
-            max_peaks=peaks,
-            threshold=threshold * max([max(a) for a in h]),
-            epsilon=epsilon,
-            max_angle_deviation=max_angle_deviation,
-        )
-        corners = [
-            rescale_point(corner, img.shape, original_shape[:-1]) for corner in corners
-        ]
-
-        if len(corners) >= 4:
-            break
-
-        if max_peaks == peaks:
-            break
-        peaks += 1
-
-    if len(corners) < 3:
-        raise Exception("Document could not be detected")
-
-    corners = np.array(corners)
-    if len(corners) == 3:
-        # if only 3 corners are detected, add the 4th corner
-        centroid = np.mean(corners, axis=0)
-        centroid_angles = np.arctan2(
-            corners[:, 1] - centroid[1], corners[:, 0] - centroid[0]
-        )
-        corners = np.array(corners)[np.argsort(centroid_angles)]
-        angles = np.array(angles)[np.argsort(centroid_angles)]
-
-        ab = corners[0] - corners[1]
-        ac = corners[2] - corners[1]
-        ad = corners[1] + ab + ac
-
-        corners = np.append(corners, [ad], axis=0)
-        angles = np.append(angles, [np.pi / 2], axis=0)
-
-    # if more than four corners are detected, find the best 4 corners (closest to 90° angles)
-    if len(corners) > 4:
-        ord = np.argsort(np.abs(90 - np.abs(angles)))
-        corners = np.array(corners)[ord][:4]
-        angles = np.array(angles)[ord][:4]
-
-    centroid = np.mean(corners, axis=0)
-
-    # sort the corners in counter clockwise order starting form the 3. Quadrant
-    # since matplotlib coords start in the topleft corner and the y axis is positive downwards the Quadrants are mirrored horizontally
-    centroid_angles = np.arctan2(
-        corners[:, 1] - centroid[1], corners[:, 0] - centroid[0]
+    corners, _ = find_corners_from_hough_space(
+        h,
+        h_angles,
+        dists,
+        max_peaks=max_retries,
+        img_shape=img.shape,
+        epsilon=epsilon,
+        threshold_percentage=threshold,
+        max_angle_deviation=max_angle_deviation,
+        out_shape=original_shape,
     )
-    corners = np.array(corners)[np.argsort(centroid_angles)]
-    angles = np.array(angles)[np.argsort(centroid_angles)]
+    if corners is None:
+        return None
 
-    return corners
+    return np.array([corner.point.coords for corner in corners])
 
 
 def _get_image_out_shape(corners):

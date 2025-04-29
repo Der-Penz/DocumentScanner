@@ -92,24 +92,18 @@ def find_corners(frame, args):
         footprint_size=args.footprint_size,
     )
     edge_map = _edge_detection(preprocessed_img)
-    try:
-
-        new_corners = _corner_detection(
-            edge_map,
-            frame.shape,
-            num_angles=args.num_angles,
-            max_angle_deviation=args.max_angle_deviation,
-            epsilon=args.epsilon,
-            threshold=args.threshold,
-            max_retries=args.max_retries,
-        )
-
+    new_corners = _corner_detection(
+        edge_map,
+        frame.shape,
+        num_angles=args.num_angles,
+        max_angle_deviation=args.max_angle_deviation,
+        epsilon=args.epsilon,
+        threshold=args.threshold,
+        max_retries=args.max_retries,
+    )
+    if new_corners is not None:
         with lock:
             corners = new_corners
-    except:
-        print("could not find corners")
-        with lock:
-            corners = None
 
 
 def process_frame(frame, args):
@@ -129,6 +123,7 @@ def process_frame(frame, args):
     except Exception as e:
         print(f"Error during document detection:")
         raise e
+
 
 def resize_with_aspect_ratio(image, width=None, height=None, inter=cv2.INTER_AREA):
     h, w = image.shape[:2]

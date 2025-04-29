@@ -3,6 +3,7 @@ import numpy as np
 from util.geometry import (
     Line,
     Intersection,
+    Point,
     PointLike,
     arg_sort_points_clockwise,
     in_range,
@@ -83,6 +84,27 @@ def detect_corners(
             intersections,
         )
     )
+    intersections = np.array(intersections)
+
+    # take the best 4 corners by 90° angles
+    if len(intersections) > 4:
+        ord = np.argsort(
+            np.abs(90 - np.abs([corner.angle for corner in intersections]))
+        )
+        intersections = np.array(intersections)[ord][:4]
+
+    # if only 3 corners are detected, add the 4th corner
+    if len(intersections) == 3:
+        order = arg_sort_points_clockwise([corner.point for corner in intersections])
+
+        intersections = intersections[order]
+        ab = intersections[0].point.coords - intersections[1].point.coords
+        ac = intersections[2].point.coords - intersections[1].point.coords
+        ad = intersections[1].point.coords + ab + ac
+
+        intersections = np.append(
+            intersections, [Intersection(Point(ad[0], ad[1]), 90, None, None)], axis=0
+        )
 
     return intersections if len(intersections) >= 4 else None
 
@@ -91,10 +113,12 @@ def find_corners_from_hough_space(
     h,
     theta,
     d,
-    max_peaks: int,
     img_shape: PointLike,
-    epsilon: float,
-    threshold_percentage: float,
+    max_peaks: int = 20,
+    epsilon: float = 0.1,
+    threshold_percentage: float = 0.5,
+    max_angle_deviation: float = 20,
+    out_shape: Optional[PointLike] = None,
 ):
     """
     Find the corners of a document in the Hough space. Tries to find the best 4 corners by starting with only 4 lines and increasing the number of lines until enough corners are found.
@@ -102,10 +126,12 @@ def find_corners_from_hough_space(
     :param h: Hough accumulator array
     :param theta: Array of angles used for the Hough transform
     :param d: Array of distances used for the Hough transform
-    :param max_peaks: Maximum number of lines to consider in the Hough accumulator
     :param img_shape: Shape of the image
+    :param max_peaks: Maximum number of lines to consider in the Hough accumulator
     :param epsilon: Margin as a fraction of image dimensions to allow near-edge intersections
     :param threshold_percentage: Percentage of the maximum value in the Hough accumulator to use as a threshold for peak detection
+    :param max_angle_deviation: Maximum allowed angle deviation from 90 degrees to consider a point as a corner
+    :param out_shape: Shape of the output image. if provided, the corners will be rescaled to this space 
 
     :return: Tuple containing the detected corners and the lines. If no corners are found, returns None and the lines.
     """
@@ -122,7 +148,7 @@ def find_corners_from_hough_space(
             epsilon=epsilon,
         )
 
-        corners = detect_corners(intersections, max_angle_deviation=20)
+        corners = detect_corners(intersections, max_angle_deviation=max_angle_deviation)
 
         if corners is None:
             if max_peaks == peaks:
@@ -131,4 +157,7 @@ def find_corners_from_hough_space(
             continue
 
         order = arg_sort_points_clockwise([corner.point for corner in corners])
+
+        if out_shape:
+            [corner.point.rescale(img_shape, out_shape) for corner in corners]
         return np.array(corners)[order], lines
