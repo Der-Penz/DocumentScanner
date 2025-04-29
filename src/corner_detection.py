@@ -1,3 +1,5 @@
+import collections
+import itertools
 from typing import List, Optional, Tuple
 import numpy as np
 from util.geometry import (
@@ -86,6 +88,46 @@ def detect_corners(
     )
     intersections = np.array(intersections)
 
+    # filter out corners that lie in proximity to each other
+    comb = itertools.combinations(intersections, 2)
+    comb = [
+        (inter1, inter2)
+        for inter1, inter2 in comb
+        if np.linalg.norm(inter1.point.coords - inter2.point.coords) < 10
+    ]
+
+    if len(comb) > 0:
+        # remove the corner with the worst angle
+        for inter1, inter2 in comb:
+            to_remove = (
+                inter1
+                if abs(90 - abs(inter1.angle)) > abs(90 - abs(inter2.angle))
+                else inter2
+            )
+            intersections = np.delete(
+                intersections, np.where(intersections == to_remove)
+            )
+
+    # check if more than 3 corners are on the same line
+    counter = collections.defaultdict(lambda: list())
+    for inter in intersections:
+        counter[inter.line_a].append(inter)
+        counter[inter.line_b].append(inter)
+
+    for line, count in counter.items():
+        for _ in range(len(count) - 2):
+            # remove the corner with the worst angle
+            to_remove = (
+                count[0]
+                if abs(90 - abs(count[0].angle)) > abs(90 - abs(count[1].angle))
+                else count[1]
+            )
+
+            count.remove(to_remove)
+            intersections = np.delete(
+                intersections, np.where(intersections == to_remove)
+            )
+
     # take the best 4 corners by 90° angles
     if len(intersections) > 4:
         ord = np.argsort(
@@ -131,7 +173,7 @@ def find_corners_from_hough_space(
     :param epsilon: Margin as a fraction of image dimensions to allow near-edge intersections
     :param threshold_percentage: Percentage of the maximum value in the Hough accumulator to use as a threshold for peak detection
     :param max_angle_deviation: Maximum allowed angle deviation from 90 degrees to consider a point as a corner
-    :param out_shape: Shape of the output image. if provided, the corners will be rescaled to this space 
+    :param out_shape: Shape of the output image. if provided, the corners will be rescaled to this space
 
     :return: Tuple containing the detected corners and the lines. If no corners are found, returns None and the lines.
     """
