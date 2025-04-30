@@ -2,6 +2,22 @@
 
 This project aims to use Computer vision for detecting documents on an image and warping the image in a way to display the document face on. It uses the Hough Transform for line detection on the image to eventual find the document corners and warping the image.
 
+## How to use
+
+1. Preferably create a virtual environment with conda, poetry or whatever you use.
+2. Install the necessary requirements with `pip install -r requirements.txt`.
+3. Install the module locally `pip install -e .`
+4. Run a script or notebook
+
+- Run the python notebook and look at each individual processing step.
+    > Note: The notebook will not run completly if the document could be be found
+
+- Or use the cli with `python main.py <<your_image_path>>`.  
+Use `python main.py --help` for more information.
+
+- Additional you can run the `python cam.py <<http-video-stream-url>>` to detect a document from a video stream. Useful if you want to test it with your phones camera.
+Pressing `d` will try to detect a document on the current frame. If a document could be detected press `s` to save it in the tmp dir. Close the connection with `q`.
+
 ## How it works
 
 The document detection process is made up of several key steps:
@@ -73,17 +89,6 @@ As this example shows edges from other objects can be falsy interpreted as the d
 
 Getting more reliant in these situation requires additional computation and improved line and corner detection. 
 At the end a CNN would most likely outperform this method but for a cost of more computation and explainability.
-
-## How to use
-
-For now you can run the python notebook and look at each individual processing step.
-> Note: The notebook will not run completly if the document could be be found
-
-Or use the cli with `python main.py <<your_image_path>>`.  
-Use `python main.py --help` for more information.
-
-Additional you can run the `python cam.py <<http-video-stream-url>>` to detect a document from a video stream. Useful if you want to test it with your phones camera.
-Pressing `d` will try to detect a document on the current frame. If a document could be detected press `s` to save it in the tmp dir. Close the connection with `q`.
 
 ## Resources
 
